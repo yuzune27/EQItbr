@@ -29,7 +29,7 @@ export async function BskyRichPost(content: string, url: string, hypoName: strin
         title = `${hypoName}を震源とする地震情報 (日付の新しい順) - tenki.jp`;
         description = `${hypoName}を震源とする地震情報 (日付の新しい順)`;
     } else {
-        imgUrl = "https://raw.githubusercontent.com/yuzune27/EQItbr/refs/heads/main/img/jmaData.jpg";
+        imgUrl = "https://raw.githubusercontent.com/yuzune27/EQItbr/refs/heads/main/img/jmaData.png";
         title = "気象庁震度データベース";
         description = "1919年から2日前までの期間で、過去に震度1以上を観測した地震を県別・観測点別に検索できます。";
     }

@@ -161,7 +161,7 @@ export async function ReqWork() {
             }
 
             // @ts-ignore
-            const content : string = `${exp}${newOtText}頃発生した「${hypoName}」震源の地震は、${diffStr}。\n前回発生は${recentOtText}でした。\n（ソース：${source}）\n\n`;
+            const content : string = `${exp}${newOtText}頃発生した「${hypoName}」震源の地震は、${diffStr}。\n（前回発生は${recentOtText}でした。）\n\nソース：${source}\n`;
             // @ts-ignore
             await BskyRichPost(content, sourceUrl, hypoName);
         }
