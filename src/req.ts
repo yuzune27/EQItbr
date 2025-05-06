@@ -109,6 +109,7 @@ export async function ReqWork() {
             // const newOT : Date = new Date(json[0]["originTime"]);
             // const recentOT : Date = new Date(json[1]["originTime"]);
         }
+        tmpEventId = eventId;
 
         let diffStr : string;
         // @ts-ignore
@@ -120,7 +121,6 @@ export async function ReqWork() {
             // @ts-ignore
             const hypoResp = await DmGDEql(hypoCode)
             const hypoJson = hypoResp["items"];
-            //TODO originTimeがUndefinedの場合の処理を追加すること
             const newOT : Date = new Date(hypoJson[0]["originTime"]);  // 最新の発生時刻
             const recentOT : Date = new Date(hypoJson[1]["originTime"]);  // 一つ前の発生時刻
 
@@ -148,11 +148,11 @@ export async function ReqWork() {
             await BskyPost(content);
         }
         // const jstStr : string = originTime.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-
-        tmpEventId = eventId;
     }
 }
 
+/*
 async function test() {
     console.log(await JmaDB("東京都２３区"));
 }
+*/
