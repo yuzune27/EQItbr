@@ -43,7 +43,7 @@ export function dateDiff(from: Date, to: Date) {
 }
 
 export function parseOt(otStr : string) : Date {
-    const match = otStr.match(/^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{1})$/);
+    const match = otStr.match(/^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d)$/);
     if (!match) throw new Error("Invalid date format");
 
     const [, yearStr, monthStr, dayStr, hourStr, minuteStr, secondStr, msStr] = match;
@@ -71,8 +71,8 @@ export function diffDateText (diff : DiffDT) : string {
     }
 }
 
-export function getExp (diff : DiffDT) : string {
-    let exp : string = "";
+export function getExp (diff : DiffDT) : string | undefined {
+    let exp : string | undefined;
     if (diff.years >= 10) {
         exp = "非常に珍しい"
     } else if (diff.years >= 5) {

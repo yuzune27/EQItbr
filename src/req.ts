@@ -125,12 +125,11 @@ export async function ReqWork() {
             const recentOT : Date = new Date(hypoJson[1]["originTime"]);  // 一つ前の発生時刻
 
             if (typeof newOT === "undefined" || typeof recentOT === "undefined") continue;
-            const newOtText : string = `${newOT.getDate()}日 
-            ${newOT.getHours().toString().padStart(2, "0")}時
-            ${newOT.getMinutes().toString().padStart(2, "0")}分`;
+            const newOtText : string = `${newOT.getDate()}日 ` +
+                `${newOT.getHours().toString().padStart(2, "0")}時` + `${newOT.getMinutes().toString().padStart(2, "0")}分`;
 
             const diff : DiffDT = dateDiff(recentOT, newOT)  // 現在時刻を起点に3日以上はデータベース参照
-            let exp : string = "";
+            let exp : string | undefined;
             let recentOtText : string;
             if (diff.days >= 3) {
                 const diff1 : DiffDT = dateDiff(jmaOt, newOT);  // データベース最新　→　最新発生
@@ -143,8 +142,14 @@ export async function ReqWork() {
                 recentOtText = `${recentOT.getFullYear()}.${recentOT.getMonth() + 1}.${recentOT.getDate()}`;
             }
 
+            if (typeof exp !== "undefined") {
+                exp = `【${exp}震源】\n`;
+            } else {
+                exp = "";
+            }
+
             // @ts-ignore
-            const content : string = `${newOtText}頃発生した${hypoName}の地震は、${diffStr}の${exp}震源。\n（前回発生は${recentOtText}でした。）\n\nhttps://earthquake.tenki.jp/bousai/earthquake/center/${hypoCode}/`
+            const content : string = `${exp}${newOtText}頃発生した${hypoName}震源の地震は、${diffStr}。\n（前回発生は${recentOtText}でした。）\n\nhttps://earthquake.tenki.jp/bousai/earthquake/center/${hypoCode}/`
             await BskyPost(content);
         }
         // const jstStr : string = originTime.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
