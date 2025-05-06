@@ -65,7 +65,7 @@ export function diffDateText (diff : DiffDT) : string {
     } else if (diff.months > 0) {
         return `${diff.months}ヶ月${diff.days}日ぶり`;
     } else if (diff.days > 0) {
-        return `${diff.years}年${diff.months}ヶ月${diff.days}日ぶり`;
+        return `${diff.days}日ぶり`;
     } else {
         return `${diff.hours}時間${diff.minutes}分ぶり`;
     }

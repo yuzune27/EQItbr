@@ -1,7 +1,7 @@
 import {dmdataToken} from "./envSetting";
 import {delay} from "./delay";
 import {dateDiff, diffDateText, DiffDT, getExp, parseOt} from "./calcDate";
-import {BskyPost} from "./bsky";
+import {BskyPost, BskyRichPost} from "./bsky";
 
 function jmaEQSearch(date : Date, epi : string)
 {
@@ -115,6 +115,7 @@ export async function ReqWork() {
         // @ts-ignore
         let jmaJson = await JmaDB(hypoName);
         const jmaOt : Date = parseOt(jmaJson["res"][0]["ot"]);
+        const jmaId : string = jmaJson["res"][0]["id"];
         if (jmaOt === null) {
             console.log("データが取得できませんでした。");
         } else {
@@ -128,6 +129,9 @@ export async function ReqWork() {
             const newOtText : string = `${newOT.getDate()}日 ` +
                 `${newOT.getHours().toString().padStart(2, "0")}時` + `${newOT.getMinutes().toString().padStart(2, "0")}分`;
 
+            let source : string;
+            let sourceUrl : string;
+
             const diff : DiffDT = dateDiff(recentOT, newOT)  // 現在時刻を起点に3日以上はデータベース参照
             let exp : string | undefined;
             let recentOtText : string;
@@ -135,11 +139,19 @@ export async function ReqWork() {
                 const diff1 : DiffDT = dateDiff(jmaOt, newOT);  // データベース最新　→　最新発生
                 exp = getExp(diff1);
                 diffStr = diffDateText(diff1);
-                recentOtText = `${jmaOt.getFullYear()}.${jmaOt.getMonth() + 1}.${jmaOt.getDate()}`;
+                recentOtText = `${jmaOt.getFullYear()}.${jmaOt.getMonth() + 1}.${jmaOt.getDate()} ${jmaOt.getHours()}:${jmaOt.getMinutes()}`;
+
+                source = "気象庁震度データベース";
+                sourceUrl = `https://www.data.jma.go.jp/eqdb/data/shindo/#${jmaId}`
             } else {
                 exp = getExp(diff);
                 diffStr = diffDateText(diff);
-                recentOtText = `${recentOT.getFullYear()}.${recentOT.getMonth() + 1}.${recentOT.getDate()}`;
+                recentOtText = `${recentOT.getFullYear()}.${recentOT.getMonth() + 1}.${recentOT.getDate()} ${recentOT.getHours()}:${recentOT.getMinutes()}`;
+                // @ts-ignore
+
+                source = "気象庁・DmData";
+                // @ts-ignore
+                sourceUrl = `https://earthquake.tenki.jp/bousai/earthquake/center/${hypoCode}/`;
             }
 
             if (typeof exp !== "undefined") {
@@ -149,8 +161,9 @@ export async function ReqWork() {
             }
 
             // @ts-ignore
-            const content : string = `${exp}${newOtText}頃発生した${hypoName}震源の地震は、${diffStr}。\n（前回発生は${recentOtText}でした。）\n\nhttps://earthquake.tenki.jp/bousai/earthquake/center/${hypoCode}/`
-            await BskyPost(content);
+            const content : string = `${exp}${newOtText}頃発生した「${hypoName}」震源の地震は、${diffStr}。\n前回発生は${recentOtText}でした。\n（ソース：${source}）\n\n`;
+            // @ts-ignore
+            await BskyRichPost(content, sourceUrl, hypoName);
         }
         // const jstStr : string = originTime.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
     }
