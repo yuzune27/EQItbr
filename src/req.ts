@@ -1,7 +1,7 @@
 import {dmdataToken} from "./envSetting";
 import {delay} from "./delay";
 import {dateDiff, diffDateText, DiffDT, getExp, parseOt} from "./calcDate";
-import {BskyPost, BskyRichPost} from "./bsky";
+import {BskyRichPost} from "./bsky";
 
 function jmaEQSearch(date : Date, epi : string)
 {
@@ -28,7 +28,7 @@ function jmaEQSearch(date : Date, epi : string)
     return ReqDict;
 }
 
-async function JmaDB(epi: string, dtSubtr : number = 3) {  // 最新情報は基本的に3日前まで
+async function JmaDB(epi: string, dtSubtr : number = 2) {  // 最新情報は基本的に3日前まで
     const url : string = "https://www.data.jma.go.jp/eqdb/data/shindo/api/";
     const formData = new FormData();
     const dtNow = new Date();
@@ -52,7 +52,7 @@ async function JmaDB(epi: string, dtSubtr : number = 3) {  // 最新情報は基
     const json = await resp.json();
     if (typeof json["res"] === "string") {
         if (json["res"].includes("データはありません")) {  // 検索終了日時の設定を見直す
-            return JmaDB(epi, 4);
+            return JmaDB(epi, 3);
         } else if (json["res"].includes("ありませんでした")) {  // 検索結果がない
             return null;
         } else {
@@ -135,18 +135,20 @@ export async function ReqWork() {
             const diff : DiffDT = dateDiff(recentOT, newOT)  // 現在時刻を起点に3日以上はデータベース参照
             let exp : string | undefined;
             let recentOtText : string;
-            if (diff.days >= 3) {
+            if (diff.days >= 2 && diff.hours >= 12) {
                 const diff1 : DiffDT = dateDiff(jmaOt, newOT);  // データベース最新　→　最新発生
                 exp = getExp(diff1);
                 diffStr = diffDateText(diff1);
-                recentOtText = `${jmaOt.getFullYear()}.${jmaOt.getMonth() + 1}.${jmaOt.getDate()} ${jmaOt.getHours()}:${jmaOt.getMinutes()}`;
+                recentOtText = `${jmaOt.getFullYear()}.${(jmaOt.getMonth() + 1).toString().padStart(2, "0")}.${jmaOt.getDate().toString().padStart(2, "0")} ` +
+                    `${jmaOt.getHours().toString().padStart(2, "0")}:${jmaOt.getMinutes().toString().padStart(2, "0")}`;
 
                 source = "気象庁震度データベース";
                 sourceUrl = `https://www.data.jma.go.jp/eqdb/data/shindo/#${jmaId}`
             } else {
                 exp = getExp(diff);
                 diffStr = diffDateText(diff);
-                recentOtText = `${recentOT.getFullYear()}.${recentOT.getMonth() + 1}.${recentOT.getDate()} ${recentOT.getHours()}:${recentOT.getMinutes()}`;
+                recentOtText = `${recentOT.getFullYear()}.${(recentOT.getMonth() + 1).toString().padStart(2, "0")}.${recentOT.getDate().toString().padStart(2, "0")} ` +
+                    `${recentOT.getHours().toString().padStart(2, "0")}:${recentOT.getMinutes().toString().padStart(2, "0")}`;
                 // @ts-ignore
 
                 source = "気象庁・DmData";
