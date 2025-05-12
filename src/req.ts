@@ -124,8 +124,6 @@ export async function ReqWork() {
             if (typeof resp === "undefined") continue;
             const json = resp["items"];
             eventId = json[0]["eventId"];
-            hypoCode = json[0]["hypocenter"]["code"];
-            hypoName = json[0]["hypocenter"]["name"];
             // const newOT : Date = new Date(json[0]["originTime"]);
             // const recentOT : Date = new Date(json[1]["originTime"]);
         } while (eventId == tmpEventId);
@@ -133,6 +131,13 @@ export async function ReqWork() {
         const telegramsType : string = eventResp["event"]["telegrams"][0]["head"]["type"];
         if (telegramsType != "VXSE53") continue;
         tmpEventId = eventId;
+
+        try {
+            hypoCode = json[0]["hypocenter"]["code"];
+            hypoName = json[0]["hypocenter"]["name"];
+        } catch (e) {
+            continue;
+        }
 
         let diffStr : string;
         // @ts-ignore
@@ -143,6 +148,7 @@ export async function ReqWork() {
             console.log("データが取得できませんでした。");
         } else {
             // @ts-ignore
+            if (typeof hypoCode === "undefined") continue;
             const hypoResp = await DmGDEql(hypoCode)
             const hypoJson = hypoResp["items"];
             const newOT : Date = new Date(hypoJson[0]["originTime"]);  // 最新の発生時刻
