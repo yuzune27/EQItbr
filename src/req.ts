@@ -28,7 +28,7 @@ function jmaEQSearch(date : Date, epi : string)
     return ReqDict;
 }
 
-async function JmaDB(epi: string, dtSubtr : number = 2) {  // 最新情報は基本的に3日前まで
+async function JmaDB(epi: string, dtSubtr : number = 2) {  // 最新情報は基本的に2日前まで
     const url : string = "https://www.data.jma.go.jp/eqdb/data/shindo/api/";
     const formData = new FormData();
     const dtNow = new Date();
@@ -62,12 +62,16 @@ async function JmaDB(epi: string, dtSubtr : number = 2) {  // 最新情報は基
     return json;
 }
 
+function TokenEncode() : string {
+    return btoa(String.fromCharCode(...Array.from(new TextEncoder().encode(dmdataToken + ":"))));
+}
+
 async function DmGDEql(hypoNo? : string) {
     let url : string = "https://api.dmdata.jp/v2/gd/earthquake?limit=2";
     if (typeof hypoNo !== "undefined") {
         url += `&hypocenter=${hypoNo}`;
     }
-    const encToken : string = btoa(String.fromCharCode(...Array.from(new TextEncoder().encode(dmdataToken + ":"))))
+    const encToken : string = TokenEncode();
 
     const headers : { [key : string] : string } = {
         "Authorization": "Basic " + encToken
@@ -85,6 +89,22 @@ async function DmGDEql(hypoNo? : string) {
     return;  // おそらく遠地
 }
 
+async function DmGdEqe(eventId : string) {
+    const url : string = `https://api.dmdata.jp/v2/gd/earthquake/${eventId}`;
+    const encToken : string = TokenEncode();
+
+    const headers : { [key : string] : string } = {
+        "Authorization": "Basic " + encToken
+    }
+
+    const resp : Response = await fetch(url, {
+        method: "GET",
+        headers: headers
+    });
+
+    return await resp.json();
+}
+
 export async function ReqWork() {
     const resp = await DmGDEql();
     const json = resp["items"][0];
@@ -97,7 +117,7 @@ export async function ReqWork() {
     // noinspection InfiniteLoopJS
     while (true)
     {
-        while (tmpEventId == eventId)
+        do
         {
             await delay(15000);
             const resp = await DmGDEql();
@@ -108,7 +128,10 @@ export async function ReqWork() {
             hypoName = json[0]["hypocenter"]["name"];
             // const newOT : Date = new Date(json[0]["originTime"]);
             // const recentOT : Date = new Date(json[1]["originTime"]);
-        }
+        } while (eventId == tmpEventId);
+        const eventResp = await DmGdEqe(eventId);
+        const telegramsType : string = eventResp["event"]["telegrams"][0]["head"]["type"];
+        if (telegramsType != "VXSE53") continue;
         tmpEventId = eventId;
 
         let diffStr : string;
@@ -126,7 +149,7 @@ export async function ReqWork() {
             const recentOT : Date = new Date(hypoJson[1]["originTime"]);  // 一つ前の発生時刻
 
             if (typeof newOT === "undefined" || typeof recentOT === "undefined") continue;
-            const newOtText : string = `${newOT.getDate()}日 ` +
+            const newOtText : string = `${newOT.getDate().toString().padStart(2, "0")}日 ` +
                 `${newOT.getHours().toString().padStart(2, "0")}時` + `${newOT.getMinutes().toString().padStart(2, "0")}分`;
 
             let source : string;
@@ -135,16 +158,7 @@ export async function ReqWork() {
             const diff : DiffDT = dateDiff(recentOT, newOT)  // 現在時刻を起点に3日以上はデータベース参照
             let exp : string | undefined;
             let recentOtText : string;
-            if (diff.days >= 2 && diff.hours >= 12) {
-                const diff1 : DiffDT = dateDiff(jmaOt, newOT);  // データベース最新　→　最新発生
-                exp = getExp(diff1);
-                diffStr = diffDateText(diff1);
-                recentOtText = `${jmaOt.getFullYear()}.${(jmaOt.getMonth() + 1).toString().padStart(2, "0")}.${jmaOt.getDate().toString().padStart(2, "0")} ` +
-                    `${jmaOt.getHours().toString().padStart(2, "0")}:${jmaOt.getMinutes().toString().padStart(2, "0")}`;
-
-                source = "気象庁震度データベース";
-                sourceUrl = `https://www.data.jma.go.jp/eqdb/data/shindo/#${jmaId}`
-            } else {
+            if (diff.years < 1 && diff.months < 1 && diff.days <= 2 && diff.hours <= 12) {
                 exp = getExp(diff);
                 diffStr = diffDateText(diff);
                 recentOtText = `${recentOT.getFullYear()}.${(recentOT.getMonth() + 1).toString().padStart(2, "0")}.${recentOT.getDate().toString().padStart(2, "0")} ` +
@@ -154,6 +168,15 @@ export async function ReqWork() {
                 source = "気象庁・DmData";
                 // @ts-ignore
                 sourceUrl = `https://earthquake.tenki.jp/bousai/earthquake/center/${hypoCode}/`;
+            } else {
+                const diff1 : DiffDT = dateDiff(jmaOt, newOT);  // データベース最新　→　最新発生
+                exp = getExp(diff1);
+                diffStr = diffDateText(diff1);
+                recentOtText = `${jmaOt.getFullYear()}.${(jmaOt.getMonth() + 1).toString().padStart(2, "0")}.${jmaOt.getDate().toString().padStart(2, "0")} ` +
+                    `${jmaOt.getHours().toString().padStart(2, "0")}:${jmaOt.getMinutes().toString().padStart(2, "0")}`;
+
+                source = "気象庁震度データベース";
+                sourceUrl = `https://www.data.jma.go.jp/eqdb/data/shindo/#${jmaId}`
             }
 
             if (typeof exp !== "undefined") {
