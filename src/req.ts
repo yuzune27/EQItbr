@@ -119,7 +119,7 @@ export async function ReqWork() {
     {
         do
         {
-            await delay(1000);
+            await delay(15000);
             const resp = await DmGDEql();
             if (typeof resp === "undefined") continue;
             const json = resp["items"];
