@@ -119,7 +119,7 @@ export async function ReqWork() {
     {
         do
         {
-            await delay(15000);
+            await delay(1000);
             const resp = await DmGDEql();
             if (typeof resp === "undefined") continue;
             const json = resp["items"];
@@ -133,8 +133,8 @@ export async function ReqWork() {
         tmpEventId = eventId;
 
         try {
-            hypoCode = json[0]["hypocenter"]["code"];
-            hypoName = json[0]["hypocenter"]["name"];
+            hypoCode = json["hypocenter"]["code"];
+            hypoName = json["hypocenter"]["name"];
         } catch (e) {
             continue;
         }
@@ -161,7 +161,7 @@ export async function ReqWork() {
             let source : string;
             let sourceUrl : string;
 
-            const diff : DiffDT = dateDiff(recentOT, newOT)  // 現在時刻を起点に3日以上はデータベース参照
+            const diff : DiffDT = dateDiff(recentOT, newOT)  // 現在時刻を起点に2日以上はデータベース参照
             let exp : string | undefined;
             let recentOtText : string;
             if (diff.years < 1 && diff.months < 1 && diff.days <= 2 && diff.hours <= 12) {
