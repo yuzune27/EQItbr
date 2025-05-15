@@ -62,7 +62,7 @@ async function JmaDB(epi: string, dtSubtr : number = 2) {  // 最新情報は基
     return json;
 }
 
-async function TokenEncode() : Promise<string> {
+function TokenEncode() : string {
     return btoa(String.fromCharCode(...Array.from(new TextEncoder().encode(dmdataToken + ":"))));
 }
 
@@ -71,7 +71,7 @@ async function DmGDEql(hypoNo? : string) {
     if (typeof hypoNo !== "undefined") {
         url += `&hypocenter=${hypoNo}`;
     }
-    const encToken : string = await TokenEncode();
+    const encToken : string = TokenEncode();
 
     const headers : { [key : string] : string } = {
         "Authorization": "Basic " + encToken
@@ -91,7 +91,7 @@ async function DmGDEql(hypoNo? : string) {
 
 async function DmGdEqe(eventId : string) {
     const url : string = `https://api.dmdata.jp/v2/gd/earthquake/${eventId}`;
-    const encToken : string = await TokenEncode();
+    const encToken : string = TokenEncode();
 
     const headers : { [key : string] : string } = {
         "Authorization": "Basic " + encToken
@@ -202,6 +202,6 @@ export async function ReqWork() {
 
 /*
 async function test() {
-    console.log(await DmGdEqe("20250514111914"));
+    console.log(await JmaDB("東京都２３区"));
 }
 */

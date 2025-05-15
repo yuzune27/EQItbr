@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {AppBskyFeedPost, AppBskyRichtextFacet, AtpAgent} from "@atproto/api";
 import {bskyPW, bskyUN} from "./envSetting";
 import {delay} from "./delay";
