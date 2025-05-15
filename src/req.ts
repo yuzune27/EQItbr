@@ -127,14 +127,14 @@ export async function ReqWork() {
             // const newOT : Date = new Date(json[0]["originTime"]);
             // const recentOT : Date = new Date(json[1]["originTime"]);
         } while (eventId == tmpEventId);
-        const eventResp = await DmGdEqe(eventId);
-        const telegramsType : string = eventResp["event"]["telegrams"][0]["head"]["type"];
+        const eventJson = await DmGdEqe(eventId);
+        const telegramsType : string = eventJson["event"]["telegrams"][0]["head"]["type"];
         if (telegramsType != "VXSE53") continue;
         tmpEventId = eventId;
 
         try {
-            hypoCode = json["hypocenter"]["code"];
-            hypoName = json["hypocenter"]["name"];
+            hypoCode = eventJson["event"]["hypocenter"]["code"];
+            hypoName = eventJson["event"]["hypocenter"]["name"];
         } catch (e) {
             continue;
         }
